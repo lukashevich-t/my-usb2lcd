@@ -117,10 +117,13 @@ static inline void  bootLoaderInit(void)
     _delay_us(10);  /* wait for levels to stabilize */
 }
 
+// Флажок, который взводится, если во время загрузки зажата кнопка.
+unsigned char isBootloading = 0;
+
 // #define bootLoaderCondition()   ((PIND & (1 << 3)) == 0)   /* True if jumper is set */
 static inline int bootLoaderCondition(void) {
-    int r = ((PINB & (1 << 3)) == 0);
-    if(r) {
+    if(isBootloading || ((PINB & (1 << 3)) == 0)) {
+        isBootloading = 1;
         // Настроить PC2 как выход
         DDRC |= (1<<2);
         // // Зажечь светодиод, подключенный к PC2
@@ -134,8 +137,9 @@ static inline int bootLoaderCondition(void) {
         //     PORTC |= (1<<2);
         //     _delay_us(500000);
         // }
+        return 1;
     }
-    return r;
+    return 0;
 }
 
 #endif

@@ -9,11 +9,14 @@
 
 # DEFINES += -DBWCT_COMPAT 
 # DEFINES += -DDEBUG_LEVEL=1
+DEVICE = atmega8
+FUSEH = 0xc0
+FUSEL = 0x9f
+
 DEFINES += -DF_CPU=12000000
-COMPILE = avr-gcc -Wall -O2 -Iusbdrv -Ilcd -I. -mmcu=atmega8 $(DEFINES)
-
+COMPILE = avr-gcc -Wall -O2 -Iusbdrv -Ilcd -I. -mmcu=$(DEVICE) $(DEFINES)
+AVRDUDE = avrdude -c usbasp -p $(DEVICE)
 OBJECTS = usbdrv/usbdrv.o usbdrv/usbdrvasm.o usbdrv/oddebug.o main.o lcd/lcd.o
-
 
 # symbolic targets:
 all:	firmware-avrusb.hex
@@ -32,10 +35,10 @@ all:	firmware-avrusb.hex
 	$(COMPILE) -S $< -o $@
 
 flash:	all
-	avrdude -c usbasp -p atmega8 -U lfuse:w:0x9f:m -U hfuse:w:0xc9:m -U flash:w:firmware-avrusb.hex
+	avrdude -c usbasp -p $(DEVICE) -U lfuse:w:$(FUSEL):m -U hfuse:w:$(FUSEH):m -U flash:w:firmware-avrusb.hex
 
 flash-nodep:
-	avrdude -c usbasp -p atmega8 -U lfuse:w:0x9f:m -U hfuse:w:0xc9:m -U flash:w:firmware-avrusb.hex
+	avrdude -c usbasp -p $(DEVICE) -U lfuse:w:$(FUSEL):m -U hfuse:w:$(FUSEH):m -U flash:w:firmware-avrusb.hex
 
 # Fuse high byte:
 # 0xc9 = 1 1 0 0   1 0 0 1 <-- BOOTRST (boot reset vector at 0x0000)
@@ -54,7 +57,7 @@ flash-nodep:
 #        | +------------------ BODEN (BrownOut Detector enabled)
 #        +-------------------- BODLEVEL (2.7V)
 fuse:
-	$(UISP) --wr_fuse_h=0xc9 --wr_fuse_l=0x9f
+	$(AVRDUDE) -U hfuse:w:$(FUSEH):m -U lfuse:w:$(FUSEL):m
 
 
 clean:
@@ -67,15 +70,15 @@ firmware-avrusb.bin:	$(OBJECTS)
 firmware-avrusb.hex:	firmware-avrusb.bin
 	rm -f firmware-avrusb.hex firmware-avrusb.eep.hex
 	avr-objcopy -j .text -j .data -O ihex firmware-avrusb.bin firmware-avrusb.hex
-	./checksize firmware-avrusb.bin 8192 960
+	./checksize firmware-avrusb.bin 6144 960
 # do the checksize script as our last action to allow successful compilation
 # on Windows with WinAVR where the Unix commands will fail.
 
 avrdude: firmware-avrusb.hex
-	avrdude -c usbasp -p atmega8 -U lfuse:w:0x9f:m -U hfuse:w:0xc9:m -U flash:w:firmware-avrusb.hex
+	avrdude -c usbasp -p $(DEVICE) -U lfuse:w:$(FUSEL):m -U hfuse:w:$(FUSEH):m -U flash:w:firmware-avrusb.hex
 
 avrdude-nodep:
-	avrdude -c usbasp -p atmega8 -U lfuse:w:0x9f:m -U hfuse:w:0xc9:m -U flash:w:firmware-avrusb.hex
+	avrdude -c usbasp -p $(DEVICE) -U lfuse:w:$(FUSEL):m -U hfuse:w:$(FUSEH):m -U flash:w:firmware-avrusb.hex
 
 disasm:	firmware-avrusb.bin
 	avr-objdump -d firmware-avrusb.bin
