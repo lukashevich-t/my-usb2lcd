@@ -34,7 +34,7 @@
 
 или
 
-    bootloader/commandline/bootloadHID.exe firmware/firmware-avrusb.hex
+    bootloader/commandline/bootloadHID.exe -r firmware/firmware-avrusb.hex
 
 . Отключить устройство и подключить снова.
 . Должна запуститься новая прошивка.

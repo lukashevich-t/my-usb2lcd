@@ -23,8 +23,8 @@
 #include "oddebug.h"
 
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 11
-#define VERSION_STR "1.11"
+#define VERSION_MINOR 13
+#define VERSION_STR "1.13"
 // change USB_CFG_DEVICE_VERSION in usbconfig.h as well
 
 #define LED_PORT C
